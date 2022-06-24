@@ -1,0 +1,43 @@
+= Groovy Complier Issue With CR Line Endings
+
+I spent a fair chunk of time yesterday debugging some code that wouldn't compile and the error that was reported was "String index out of bounds".
+By process of elimination I was able to track the issue to a syntax error in a particular file and fixing the error resulted in the project compiling successfully.
+I was having difficulty understanding how the error that was present would result in the `StringIndexOutOfBoundsException` reported by the compiler.
+
+I eventually determined that the file in question had some strange line endings of `CR` only.
+
+The `App.groovy` file in this project has `CR` line endings as well as bad syntax which should result in a compilation error.
+Compiling the file will result in a `StringIndexOutOfBoundsException` which I suspect is a result of parsing the file in order to report the issue back to the user.
+Fixing the syntax error will cause the file to compile and run as expected.
+
+```
+$ groovy --version
+Groovy Version: 4.0.3 JVM: 11.0.12 Vendor: Oracle Corporation OS: Linux
+
+$ groovy app/src/main/groovy/grvy/cr/bug/App.groovy
+java.lang.reflect.InvocationTargetException
+        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+        at org.codehaus.groovy.tools.GroovyStarter.rootLoader(GroovyStarter.java:109)
+        at org.codehaus.groovy.tools.GroovyStarter.main(GroovyStarter.java:132)
+Caused by: java.lang.StringIndexOutOfBoundsException: begin 228, end 2, length 2
+        at java.base/java.lang.String.checkBoundsBeginEnd(String.java:3319)
+        at java.base/java.lang.String.substring(String.java:1874)
+        at org.codehaus.groovy.control.SourceUnit.getSample(SourceUnit.java:286)
+        at org.codehaus.groovy.control.messages.SyntaxErrorMessage.write(SyntaxErrorMessage.java:55)
+        at org.codehaus.groovy.control.ErrorCollector.write(ErrorCollector.java:303)
+        at org.codehaus.groovy.control.ErrorCollector.write(ErrorCollector.java:323)
+        at org.codehaus.groovy.control.MultipleCompilationErrorsException.getMessage(MultipleCompilationErrorsException.java:60)
+        at java.base/java.lang.Throwable.getLocalizedMessage(Throwable.java:396)
+        at java.base/java.lang.Throwable.toString(Throwable.java:485)
+        at java.base/java.lang.String.valueOf(String.java:2951)
+        at java.base/java.io.PrintStream.println(PrintStream.java:897)
+        at groovy.ui.GroovyMain.run(GroovyMain.java:393)
+        at groovy.ui.GroovyMain.access$1400(GroovyMain.java:67)
+        at groovy.ui.GroovyMain$GroovyCommand.process(GroovyMain.java:313)
+        at groovy.ui.GroovyMain.processArgs(GroovyMain.java:141)
+        at groovy.ui.GroovyMain.main(GroovyMain.java:114)
+        ... 6 more
+```
